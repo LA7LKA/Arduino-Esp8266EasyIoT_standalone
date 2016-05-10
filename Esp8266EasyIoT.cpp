@@ -58,11 +58,11 @@ void Esp8266EasyIoT::begin(void (*_msgCallback)(const Esp8266EasyIoTMsg &), int 
 	//eeprom_read_block((void*)&_nodeId, (void*)EEPROM_NODE_ID_ADDRESS, sizeof(uint16_t));
 
 	debug(PSTR("nodeid:%d\n"), _nodeId);
-	pinMode(_resetPin, OUTPUT);
+	//pinMode(_resetPin, OUTPUT);
 
-	hwReset();
+	//hwReset();
 
-	delay(2000);
+	//delay(2000);
 
 	//while(processesp() != E_IDLE) delay(1);
 
