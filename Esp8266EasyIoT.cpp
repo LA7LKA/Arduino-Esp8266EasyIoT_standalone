@@ -55,7 +55,7 @@ void Esp8266EasyIoT::begin(void (*_msgCallback)(const Esp8266EasyIoTMsg &), int 
 	this->msgCallback = _msgCallback;
 
 	// Read settings from EEPROM
-	eeprom_read_block((void*)&_nodeId, (void*)EEPROM_NODE_ID_ADDRESS, sizeof(uint16_t));
+	//eeprom_read_block((void*)&_nodeId, (void*)EEPROM_NODE_ID_ADDRESS, sizeof(uint16_t));
 
 	debug(PSTR("nodeid:%d\n"), _nodeId);
 	pinMode(_resetPin, OUTPUT);
@@ -228,7 +228,7 @@ bool Esp8266EasyIoT::process()
 
 								while (1);
 							} else {
-								eeprom_write_block((void*)&_nodeId, (void*)EEPROM_NODE_ID_ADDRESS, sizeof(uint16_t));							
+								//eeprom_write_block((void*)&_nodeId, (void*)EEPROM_NODE_ID_ADDRESS, sizeof(uint16_t));							
 							}
 
 							debug(PSTR("New nodeId=%d\n"), _nodeId);	
