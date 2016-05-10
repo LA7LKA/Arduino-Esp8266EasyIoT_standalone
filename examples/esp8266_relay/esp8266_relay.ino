@@ -10,22 +10,22 @@
  version 2 as published by the Free Software Foundation.
  */
 #include <Esp8266EasyIoT.h>
-#include <SoftwareSerial.h> 
+//#include <SoftwareSerial.h> 
 
 Esp8266EasyIoT esp; 
 
-SoftwareSerial serialEsp(10, 11);
+//SoftwareSerial serialEsp(10, 11);
 
 
 
-#define RELAY_1  13  // Arduino Digital I/O pin number for first relay (second on pin+1 etc)
+#define RELAY_1  16  // Arduino Digital I/O pin number for first relay (second on pin+1 etc)
 #define RELAY_ON 1  // GPIO value to write to turn on attached relay
 #define RELAY_OFF 0 // GPIO value to write to turn off attached relay
 
 
 void setup()
 {
-  serialEsp.begin(9600);
+  //serialEsp.begin(9600);
   Serial.begin(115200);  
 
   Serial.println("EasyIoTEsp init");
