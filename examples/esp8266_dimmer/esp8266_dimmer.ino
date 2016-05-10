@@ -9,7 +9,7 @@
  version 2 as published by the Free Software Foundation.
  */
 #include <Esp8266EasyIoT.h>
-#include <SoftwareSerial.h> 
+//#include <SoftwareSerial.h> 
 
 Esp8266EasyIoT esp; 
 
@@ -17,7 +17,7 @@ SoftwareSerial serialEsp(10, 11);
 
 
 
-#define PWM_OUT  13  // 
+#define PWM_OUT  16  // 
 #define FADE_DELAY 10 
 
 
@@ -29,9 +29,7 @@ Esp8266EasyIoTMsg lightMsg(0, V_DIGITAL_VALUE);
 
 void setup()
 {
-  serialEsp.begin(9600);
-  
-  //Serial1.begin(9600); // ESP
+
   Serial.begin(115200);  
 
   Serial.println("EasyIoTEsp LED dimmer example init");
