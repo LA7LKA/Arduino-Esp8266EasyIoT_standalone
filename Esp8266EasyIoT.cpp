@@ -357,7 +357,8 @@ e_internal_state Esp8266EasyIoT::processesp()
 	
 	switch(_state)
 	{
-	case E_WAIT_OK:		
+	case E_WAIT_OK:	
+/*	
 		if (isOk(_rxFlushProcessed))
 		{
 			debug(PSTR("\nResponse->OK\n"));	
@@ -374,42 +375,73 @@ e_internal_state Esp8266EasyIoT::processesp()
 			debug(PSTR("\nResponse->timeout\n"));	
 			_state = _errorState;
 		}
+		*/
+		_state = _okState;
+		processesp();
 		break;
 	case E_START:
 		debug(PSTR("E_START\n"));	
 		_initErrCnt = 0;
-		rxFlush();
+		//rxFlush();
 		_state = E_CWMODE;
 		//processesp();
 		break;
 	case E_HWRESET:
-		hwReset();
+		//hwReset();
 		_initErrCnt = 0;
-		rxFlush();
+		//rxFlush();
 		_state = E_CWMODE;
 		break;
 	case E_CWMODE:	
+		/*
 		if (++_initErrCnt > 3)
 		{
 			_state = E_HWRESET;
 			processesp();
 			break;
-		}     
-		debug(PSTR("E_CWMODE\n"));	
-		executeCommand("AT+CWMODE=1", 2000);
-		_state = E_WAIT_OK;
-		_okState = E_CWJAP;		
-		_errorState = E_CWMODE;
-		_rxFlushProcessed = true;		
+		}
+		*/
+		
+		
 		break;
 // connect to AP
 	case E_CWJAP:
+	/*
 		_cmd="AT+CWJAP=\"";
         _cmd+=AP_SSID;
         _cmd+="\",\"";
         _cmd+=AP_PASSWORD;
         _cmd+="\"";
 	    executeCommand(_cmd, 17000);
+		*/
+			// We start by connecting to a WiFi network
+
+Serial.println();
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(AP_SSID);
+  
+  WiFi.begin(AP_SSID, AP_PASSWORD);
+  
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("");
+  Serial.println("WiFi connected");  
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+  
+  
+  
+		debug(PSTR("E_CWMODE\n"));	
+		//executeCommand("AT+CWMODE=1", 2000);
+		_state = E_WAIT_OK;
+		_okState = E_CWJAP;		
+		_errorState = E_CWMODE;
+		_rxFlushProcessed = true;
+
 	    _state = E_WAIT_OK;
 		_okState = E_CWJAP1;
 		_errorState = E_START;
@@ -418,6 +450,7 @@ e_internal_state Esp8266EasyIoT::processesp()
 		break;
 // if ok then connected to AP
 	case E_CWJAP1:
+	/*
 		if (++_connectErrCnt > 3)
 		{
 			_state = E_START;
@@ -425,6 +458,7 @@ e_internal_state Esp8266EasyIoT::processesp()
 			break;
 		}
         executeCommand("AT+CWJAP?", 17000);
+		*/
 	    _state = E_WAIT_OK;
 		_okState = E_CIPSTART;
 		_errorState = E_START;

@@ -22,7 +22,7 @@
 #include "Esp8266EasyIoTConfig.h"
 #include "Esp8266EasyIoT.h"
 #include "Esp8266EasyIoTMsg.h"
-
+#include <ESP8266WiFi.h>
 
 
 //#include <avr/eeprom.h>
@@ -99,6 +99,8 @@ public:
 
 	void setNewMsg(Esp8266EasyIoTMsg &);
 
+	WiFiClient client;
+	const int httpPort = 37602;
 
 protected:
 	Esp8266EasyIoTMsg msg;
