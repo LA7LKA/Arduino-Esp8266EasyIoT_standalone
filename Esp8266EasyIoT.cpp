@@ -56,7 +56,7 @@ void Esp8266EasyIoT::begin(void (*_msgCallback)(const Esp8266EasyIoTMsg &), int 
 
 	// Read settings from EEPROM
 	//eeprom_read_block((void*)&_nodeId, (void*)EEPROM_NODE_ID_ADDRESS, sizeof(uint16_t));
-
+	_nodeId = EEPROM.read(EEPROM_NODE_ID_ADDRESS);
 	debug(PSTR("nodeid:%d\n"), _nodeId);
 	//pinMode(_resetPin, OUTPUT);
 
@@ -228,7 +228,9 @@ bool Esp8266EasyIoT::process()
 
 								while (1);
 							} else {
-								//eeprom_write_block((void*)&_nodeId, (void*)EEPROM_NODE_ID_ADDRESS, sizeof(uint16_t));							
+								//eeprom_write_block((void*)&_nodeId, (void*)EEPROM_NODE_ID_ADDRESS, sizeof(uint16_t));
+						EEPROM.write(EEPROM_NODE_ID_ADDRESS,(uint8_t)_nodeId);
+						EEPROM.commit();
 							}
 
 							debug(PSTR("New nodeId=%d\n"), _nodeId);	
@@ -358,7 +360,7 @@ e_internal_state Esp8266EasyIoT::processesp()
 	switch(_state)
 	{
 	case E_WAIT_OK:	
-/*	
+	
 		if (isOk(_rxFlushProcessed))
 		{
 			debug(PSTR("\nResponse->OK\n"));	
@@ -375,7 +377,7 @@ e_internal_state Esp8266EasyIoT::processesp()
 			debug(PSTR("\nResponse->timeout\n"));	
 			_state = _errorState;
 		}
-		*/
+		
 		_state = _okState;
 		processesp();
 		break;
@@ -383,7 +385,8 @@ e_internal_state Esp8266EasyIoT::processesp()
 		debug(PSTR("E_START\n"));	
 		_initErrCnt = 0;
 		//rxFlush();
-		_state = E_CWMODE;
+		//_state = E_CWMODE;
+		_state = E_CWJAP;
 		//processesp();
 		break;
 	case E_HWRESET:
@@ -406,14 +409,9 @@ e_internal_state Esp8266EasyIoT::processesp()
 		break;
 // connect to AP
 	case E_CWJAP:
-	/*
-		_cmd="AT+CWJAP=\"";
-        _cmd+=AP_SSID;
-        _cmd+="\",\"";
-        _cmd+=AP_PASSWORD;
-        _cmd+="\"";
-	    executeCommand(_cmd, 17000);
-		*/
+	
+
+		
 			// We start by connecting to a WiFi network
 
 Serial.println();
@@ -466,11 +464,17 @@ Serial.println();
 		break;
 // connect
 	case E_CIPSTART:
-		_cmd = "AT+CIPSTART=\"TCP\",\"";
+		//_cmd = "AT+CIPSTART=\"TCP\",\"";
+/*
 		_cmd += SERVER_IP;
 		_cmd += "\",";
 		_cmd += SERVER_PORT;
 		executeCommand(_cmd, 17000);
+*/
+if(!client.connect("10.0.0.32", 37602)){
+    Serial.println("Connect Failed");
+    //return;
+  }
 		_state = E_WAIT_OK;
 		_okState = E_IDLE;
 		_errorState = E_CIPCLOSE;
@@ -481,7 +485,8 @@ Serial.println();
 		break;
 // close connection
 	case E_CIPCLOSE:
-		executeCommand("AT+CIPCLOSE", 17000);
+		//executeCommand("AT+CIPCLOSE", 17000);
+		client.stop();
 		_state = E_WAIT_OK;
 		_okState = E_CIPSTART;
 		_errorState = E_CWJAP1;
@@ -490,10 +495,12 @@ Serial.println();
 		_connectErrCnt = 0;
 		receiveAll();
 
+
 		if (_rxHead != _rxTail)
 		{
 			//receive
-			if (rxPos("+IPD", _rxHead, _rxTail, 0, 0))
+			//if (rxPos("+IPD", _rxHead, _rxTail, 0, 0))
+			if (rxPos("", _rxHead, _rxTail, 0, 0))
 				processReceive();
 			else if (rxchopUntil("Unlink", true, true) || rxchopUntil("FAIL", true, true) || rxchopUntil("ERROR", true, true))
 			{
@@ -504,8 +511,9 @@ Serial.println();
 		}
 		break;
 	case E_CIPSEND:
-		_cmd = "AT+CIPSEND="+String(_txLen);
-		executeCommand(_cmd, 17000);
+		//_cmd = "AT+CIPSEND="+String(_txLen);
+		//executeCommand(_cmd, 17000);
+
 		_state = E_CIPSEND_1;
 		
 		break;
@@ -514,19 +522,30 @@ Serial.println();
 		_connectErrCnt = 0;
 		_rxFlushProcessed = true;				
 
-		if (rxPos("+IPD", _rxHead, _rxTail, 0, 0))
+		//Serial.println("Jau 1\n");
+		//if (rxPos("+IPD", _rxHead, _rxTail, 0, 0))
+		if (rxPos("", _rxHead, _rxTail, 0, 0))
+		{
 			processReceive();
-		else if (rxchopUntil(">", true, true))
+		Serial.println("Jau 2\n");
+		}
+		//else if (rxchopUntil(">", true, true))
+		else if (rxchopUntil("", true, true))
 		{
 			debug(PSTR("Sending len:%d\n"), _txLen);	
 
-			_serial->write(_txBuff, _txLen);
+			//_serial->write(_txBuff, _txLen);
+					 Serial.println("Sendar test melding....\n");		
+		client.printf((char *)_txBuff);
 
+		Serial.println("Melding sendt....\n");	
 			_state = E_WAIT_OK;
 			_okState = E_IDLE;
 			_errorState = E_CIPSTART;
 
 		}
+
+
 		else if (isError(_rxFlushProcessed))
 		{
 			debug(PSTR("Response error\n"));	
@@ -537,6 +556,7 @@ Serial.println();
 			_errorState = E_CIPSTART;
 			_rxFlushProcessed = true;
 		}
+
 		break;
 	default:
 		break;
@@ -550,7 +570,8 @@ void Esp8266EasyIoT::processReceive()
 {
 	byte from1, from2;
 
-	if (rxPos("+IPD", _rxHead, _rxTail, &from1, 0))
+	//if (rxPos("+IPD", _rxHead, _rxTail, &from1, 0))
+	if (rxPos("", _rxHead, _rxTail, &from1, 0))
 	{			
 		unsigned long recTimeout = millis();
 
@@ -648,6 +669,7 @@ void Esp8266EasyIoT::executeCommand(String cmd, unsigned long respondTimeout)
 
 void Esp8266EasyIoT::receiveAll()
 {
+/*
 	while (_serial->available())
     {
 		char c = _serial->read();
@@ -664,6 +686,24 @@ void Esp8266EasyIoT::receiveAll()
 			_rxTail=aux;
 		}
 	}
+*/
+	while (client.available())
+    {
+		char c = client.read();
+		Serial.write(c);
+		#ifdef DEBUG
+		_serialDebug->print(c);
+		#endif
+
+		byte aux=(_rxTail+1)& BUFFERMASK;
+		if(aux!=_rxHead)
+		{
+			_rxBuffer[_rxTail]=c;
+			_rxBuffer[aux]=0;
+			_rxTail=aux;
+		}
+	}
+
 }
 
 bool Esp8266EasyIoT::rxPos(const char* reference, byte*  from, byte* to)

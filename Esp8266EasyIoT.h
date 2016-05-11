@@ -23,7 +23,7 @@
 #include "Esp8266EasyIoT.h"
 #include "Esp8266EasyIoTMsg.h"
 #include <ESP8266WiFi.h>
-
+#include <EEPROM.h>
 
 //#include <avr/eeprom.h>
 
@@ -149,6 +149,7 @@ private:
 	uint8_t _rxPin;
 	uint8_t _txPin;
 	char _rxBuffer[BUFFER_SIZE];
+	//char *_rxBuffer;
 	byte _rxHead; // First written one
 	byte _rxTail; // Last written one. 
 	String _cmd;
