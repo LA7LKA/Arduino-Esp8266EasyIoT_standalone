@@ -129,7 +129,8 @@ private:
 #endif
 	unsigned long _lastPing;
 	bool _newMessage;
-
+	bool _rxMessage;
+	byte _rxBytes;
 	unsigned long _pingTimmer;
 	// comand response
 	bool _waitingCommandResponse;
@@ -151,7 +152,8 @@ private:
 	char _rxBuffer[BUFFER_SIZE];
 	//char *_rxBuffer;
 	byte _rxHead; // First written one
-	byte _rxTail; // Last written one. 
+	byte _rxTail; // Last written one.
+	uint8_t rxBuffer2[BUFFER_SIZE]; 
 	String _cmd;
 	int _connectErrCnt;
 	int _initErrCnt;

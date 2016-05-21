@@ -64,7 +64,7 @@ void Esp8266EasyIoT::begin(void (*_msgCallback)(const Esp8266EasyIoTMsg &), int 
 
 	//delay(2000);
 
-	//while(processesp() != E_IDLE) delay(1);
+	while(processesp() != E_IDLE) delay(1);
 
 	// wait some time
 	for(int i=0;i<600;i++)
@@ -143,6 +143,7 @@ void Esp8266EasyIoT::send(Esp8266EasyIoTMsg &message)
 	mSetSender(message,_nodeId);
 	
 	sendinternal(message);
+
 }
 
 // internal send
@@ -161,6 +162,7 @@ void Esp8266EasyIoT::sendinternal(Esp8266EasyIoTMsg &message)
 	}
 
 	writeesp(message);
+	
 
 	if (processesp() != E_IDLE)
 	{
@@ -191,7 +193,7 @@ bool Esp8266EasyIoT::waitIdle() {
 bool Esp8266EasyIoT::process()
 {	
 	bool ret = false;
-
+	  
 	if (_newMessage)
 	{
 		if(!(msg.version == PROTOCOL_VERSION)) {
@@ -281,7 +283,7 @@ bool Esp8266EasyIoT::process()
 						ack.crc8();
 
 						debug(PSTR("ACK message\n"));
-						//sendinternal(ack);
+						sendinternal(ack);
 						if (writeesp(ack))
 						{
 							debug(PSTR("ACK message\n"));		
@@ -289,12 +291,13 @@ bool Esp8266EasyIoT::process()
 						}
 					}
 				}
+			
 			}
 			else
 			{
 				debug(PSTR("Invalid CRC\n"));	
 			}
-
+			
 		}
 		_newMessage = false;
 	}
@@ -476,6 +479,7 @@ if(!client.connect("10.0.0.32", 37602)){
     //return;
   }
 		_state = E_WAIT_OK;
+		//_state = E_CIPSEND_1;
 		_okState = E_IDLE;
 		_errorState = E_CIPCLOSE;
 		_rxFlushProcessed = true;
@@ -527,10 +531,17 @@ if(!client.connect("10.0.0.32", 37602)){
 		if (rxPos("", _rxHead, _rxTail, 0, 0))
 		{
 			processReceive();
-		Serial.println("Jau 2\n");
-		}
+		Serial.println("Sender _txBuff\n");
+		//client.printf((char *)_txBuff);
+		
+		int teller = 0;
+		while(teller != _txLen)
+			client.write(_txBuff[teller++]);
+			}
+
 		//else if (rxchopUntil(">", true, true))
 		else if (rxchopUntil("", true, true))
+
 		{
 			debug(PSTR("Sending len:%d\n"), _txLen);	
 
@@ -557,6 +568,8 @@ if(!client.connect("10.0.0.32", 37602)){
 			_rxFlushProcessed = true;
 		}
 
+
+
 		break;
 	default:
 		break;
@@ -568,6 +581,8 @@ if(!client.connect("10.0.0.32", 37602)){
 
 void Esp8266EasyIoT::processReceive()
 {
+
+/*
 	byte from1, from2;
 
 	//if (rxPos("+IPD", _rxHead, _rxTail, &from1, 0))
@@ -577,10 +592,14 @@ void Esp8266EasyIoT::processReceive()
 
 		while(true)
 		{
+		
 			if (!isTimeout(recTimeout, 2000))
 			{
-				if (rxPos(":", _rxHead, _rxTail, &from2, 0))
+			
+				//if (rxPos(":", _rxHead, _rxTail, &from2, 0))
+				if (rxPos("", _rxHead, _rxTail, &from2, 0))
 				{
+					
 					String lenstr = rxCopy(from1 + 5, from2);				
 					byte packet_len = lenstr.toInt();
 
@@ -589,6 +608,7 @@ void Esp8266EasyIoT::processReceive()
 
 					if (isInBuffer(to))
 					{
+					
 						int i = 0;
 						bool startFound = false;
 
@@ -601,9 +621,10 @@ void Esp8266EasyIoT::processReceive()
 							{
 								*(buff + i++) = _rxBuffer[b1]; 
 								startFound = true;
+								debug(PSTR("\nJau 4\n"));
 							}
 						}
-						
+					
 						// copy rest if message at begginning
 						byte cnt = 0;
 						for(byte b1=to; b1!=_rxTail;b1=(b1+1)& BUFFERMASK)
@@ -611,7 +632,8 @@ void Esp8266EasyIoT::processReceive()
 							_rxBuffer[(from1 + cnt) & BUFFERMASK ] = _rxBuffer[b1]; 
 							cnt++;
 						}
-						_rxTail = (from1 + cnt) & BUFFERMASK;	
+						_rxTail = (from1 + cnt) & BUFFERMASK;
+						
 						if (startFound)
 						{
 							//debugPrintBuffer();
@@ -626,7 +648,7 @@ void Esp8266EasyIoT::processReceive()
 			else
 			{
 				debug(PSTR("Receive timeout\n"));	
-				_state = E_CIPCLOSE;
+				//_state = E_CIPCLOSE;
 #ifdef DEBUG
 				debugPrintBuffer();
 #endif
@@ -635,12 +657,100 @@ void Esp8266EasyIoT::processReceive()
 			delay(10);
 			receiveAll();
 		}
+	
 	}
 	else
 	{
 		debug(PSTR("Receive no +IPD\n"));	
 		_state = E_IDLE;
 	}
+
+*/
+
+	byte from1, from2;
+
+	//if (rxPos("+IPD", _rxHead, _rxTail, &from1, 0)|| (_rxBuffer[1] == START_MSG))
+	if(_rxMessage == true)
+	{			
+		unsigned long recTimeout = millis();
+
+		while(true)
+		{
+		
+			if (!isTimeout(recTimeout, 2000))
+			{
+			
+				//if (rxPos(":", _rxHead, _rxTail, &from2, 0))
+				//if (rxPos("", _rxHead, _rxTail, &from2, 0))
+				//{
+					
+					String lenstr = rxCopy(from1 + 5, from2);				
+					byte packet_len = lenstr.toInt();
+
+					byte from = 0;
+					byte to = _rxBytes + 1;
+
+					//if (isInBuffer(to))
+					//{
+					
+						int i = 0;
+						bool startFound = false;
+
+						uint8_t* buff = reinterpret_cast<uint8_t*>(&msg);
+
+						// copy message
+						for(byte b1=from; b1!=to;b1++)
+						{		
+							if ((_rxBuffer[b1] == START_MSG) || (startFound))
+							{
+								*(buff + i++) = _rxBuffer[b1]; 
+								startFound = true;
+								
+							}
+						}
+					
+						// copy rest if message at begginning
+						byte cnt = 0;
+						for(byte b1=to; b1!=_rxTail;b1=(b1+1)& BUFFERMASK)
+						{
+							_rxBuffer[(from1 + cnt) & BUFFERMASK ] = _rxBuffer[b1]; 
+							cnt++;
+						}
+						_rxTail = (from1 + cnt) & BUFFERMASK;
+						
+						if (startFound)
+						{
+							//debugPrintBuffer();
+							debug(PSTR("\nProcess new message\n"));
+							_newMessage = true;
+							process();
+						};
+						_rxMessage = false;
+						return;
+					//}
+				//}
+			}
+			else
+			{
+				debug(PSTR("Receive timeout\n"));	
+				//_state = E_CIPCLOSE;
+#ifdef DEBUG
+				debugPrintBuffer();
+#endif
+				return;
+			}
+			delay(10);
+			receiveAll();
+			//_state = E_IDLE;
+		}
+	
+	}
+	else
+	{
+		//debug(PSTR("Receive no +IPD\n"));	
+		_state = E_IDLE;
+	}
+	
 }
 
 bool Esp8266EasyIoT::writeesp(Esp8266EasyIoTMsg &message)
@@ -687,24 +797,83 @@ void Esp8266EasyIoT::receiveAll()
 		}
 	}
 */
-	while (client.available())
-    {
-		char c = client.read();
-		Serial.write(c);
-		#ifdef DEBUG
-		_serialDebug->print(c);
-		#endif
 
-		byte aux=(_rxTail+1)& BUFFERMASK;
-		if(aux!=_rxHead)
+
+
+	/*
+	if(client.available())
+    {
+			_rxTail = client.available();
+	
+	*/
+	/*
+	int teller2 = 0,teller3=(int)client.available();
+	
+	if(client.read(rxBuffer2,(size_t )teller3) != -1)
+	{
+	
+		while(teller2 != teller3)
 		{
+			char c = (char)rxBuffer2[teller2];
+
+			#ifdef DEBUG
+			_serialDebug->println("Mottok noe!\r\n");
+			_serialDebug->print(c);
+			#endif
+
+			byte aux=(_rxTail+1)& BUFFERMASK;
+			if(aux!=_rxHead)
+			{
 			_rxBuffer[_rxTail]=c;
 			_rxBuffer[aux]=0;
 			_rxTail=aux;
+			}
+			
+			teller2++;
 		}
+	
+		
+	}
+*/
+	_rxMessage = false;
+int antallbytesrx=0, t=0;
+	if(client.available())
+	{
+
+		
+		
+		antallbytesrx = client.available();
+		
+		
+
+		for(t=0;t<antallbytesrx;t++)
+		{
+			char c = client.read();
+
+			#ifdef DEBUG
+			//_serialDebug->println("Mottok noe!\r\n");
+			//_serialDebug->print(c);
+			debug(PSTR("Byte nr %d: %X\r\n"), t,_rxBuffer[t]);
+			#endif
+
+			byte aux=(_rxTail+1)& BUFFERMASK;
+			if(aux!=_rxHead)
+			{
+			_rxBuffer[_rxTail]=c;
+			_rxBuffer[aux]=0;
+			_rxTail=aux;
+			}
+			
+
+			
+		}
+		_rxBytes = antallbytesrx - 1;
+		_rxMessage = true;
 	}
 
+
 }
+
 
 bool Esp8266EasyIoT::rxPos(const char* reference, byte*  from, byte* to)
 {
@@ -751,7 +920,8 @@ bool Esp8266EasyIoT::rxPos(const char* reference, byte thishead, byte thistail, 
 			b2=(b2+1)& BUFFERMASK;
 		}
 	}
-	return false;
+	//return false;
+	return true;
 }
 
 
