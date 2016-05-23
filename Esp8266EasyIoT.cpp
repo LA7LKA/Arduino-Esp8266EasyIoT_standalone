@@ -474,7 +474,7 @@ Serial.println();
 		_cmd += SERVER_PORT;
 		executeCommand(_cmd, 17000);
 */
-if(!client.connect("10.0.0.32", 37602)){
+if(!client.connect(SERVER_IP, SERVER_PORT)){
     Serial.println("Connect Failed");
     //return;
   }
