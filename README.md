@@ -4,3 +4,5 @@
 	See http://iot-playground.com/
 	This work is based on this library https://github.com/iot-playground/Arduino
 	-Øystein
+	
+	21 og may 2016: Code is working :-) No need for an additional uC....
