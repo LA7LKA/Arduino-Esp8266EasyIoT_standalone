@@ -6,3 +6,7 @@
 	-Øystein
 	
 	21.05.2016: Code is working :-) No need for an additional uC....
+
+
+	Programmer for ESP8266:
+	![alt tag](http://github.com/LA7LKA/Arduino-Esp8266EasyIoT_standalone/blob/master/programmer.png)
