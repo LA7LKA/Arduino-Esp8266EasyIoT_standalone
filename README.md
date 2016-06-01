@@ -9,4 +9,7 @@
 
 
 	Programmer for ESP8266:
-	![alt tag](http://github.com/LA7LKA/Arduino-Esp8266EasyIoT_standalone/blob/master/programmer.png)
+
+<p align="center">
+  <img src="programmer.png" width="350"/>
+</p>
