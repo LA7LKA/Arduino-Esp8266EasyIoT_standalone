@@ -11,5 +11,5 @@
 	Programmer for ESP8266:
 
 <p align="center">
-  <img src="programmer.png" width="350"/>
+  <img src="programmer.png" />
 </p>
